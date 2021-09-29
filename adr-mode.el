@@ -1,4 +1,6 @@
-(require 'cl-lib)(require 'pp)
+(require 'cl-lib)
+(require 's)
+(require 'pp)
 
 (define-derived-mode adr-list-mode tabulated-list-mode "adr-list-mode"
   "Major mode to list Architecture Decision Records."
@@ -7,7 +9,7 @@
                                ("Status"  10 t)
                                ("Title" 0 t)])
   (setq tabulated-list-padding 4)
-  (setq tabulated-list-sort-key '("#" . nil))
+  (setq tabulated-list-sort-key '("Status" . nil))
   (tabulated-list-init-header))
 
 (cl-defstruct adr
@@ -36,6 +38,16 @@
     (tabulated-list-print t)
     )
   )
+
+(defun adr-show-current-id
+    ()
+  (tabulated-list-get-id))
+
+(defun adr-idstr-to-filename
+    (id)
+  (let* ((padded-number (s-pad-left 4 "0" id))
+         (filename (car (directory-files "adr" t (concat "^" padded-number "-.*\.md$")))))
+    filename))
 
 (defun adr-list-files
     (full)
