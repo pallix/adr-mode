@@ -54,7 +54,7 @@
   "Parse an adr file.
 
 Return a lisp adr record representing the useful content of filename."
-  (condition-case nil
+  (condition-case err
       (let ((record (make-adr :filename filename)))
         (with-current-buffer (find-file-noselect filename)
           (save-excursion
@@ -73,7 +73,7 @@ Return a lisp adr record representing the useful content of filename."
             record
             )))
     ((debug error)
-     (message (format "Cannot parse %s" filename))
+     (message (format "Cannot parse %s. Reason: %s" filename (prin1-to-string err)))
      nil)))
 
 ;; https://stackoverflow.com/questions/11272632/how-to-create-a-column-view-in-emacs-lisp/11529749
