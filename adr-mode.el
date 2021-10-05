@@ -25,25 +25,22 @@
   (interactive)
   (pop-to-buffer "*adr records*" nil)
   (adr-list-mode)
-  (let ((adr-files (adr-list-files t)))
+  (let* ((adr-files (adr-list-files t))
+         (records (remq nil (mapcar
+                             (lambda (file) (adr-parse-file file))
+                             adr-files))))
     (setq tabulated-list-entries
           (mapcar
-           (lambda (file)
-             (let ((r (adr-parse-file file)))
-               (list (adr-number r) (vector (adr-number r) (adr-date r) (adr-status r) (adr-title r)))
-               )
-              )
-           adr-files
-           ))
-    (tabulated-list-print t)
-    )
-  )
+           (lambda (r)
+             (list (adr-number r) (vector (adr-number r) (adr-date r) (adr-status r) (adr-title r))))
+           records))
+    (tabulated-list-print t)))
 
-(defun adr-show-current-id
+(defun adr-get-current-id
     ()
   (tabulated-list-get-id))
 
-(defun adr-idstr-to-filename
+(defun adr-id-to-filename
     (id)
   (let* ((padded-number (s-pad-left 4 "0" id))
          (filename (car (directory-files "adr" t (concat "^" padded-number "-.*\.md$")))))
@@ -57,23 +54,27 @@
   "Parse an adr file.
 
 Return a lisp adr record representing the useful content of filename."
-  (let ((record (make-adr :filename filename)))
-   (with-current-buffer (find-file-noselect filename)
-     (save-excursion
-       (goto-char 0)
-       (when (re-search-forward "^# +\\([0-9]+\\)\.? +\\(.+\\)$")
-         (setf (adr-number record) (match-string-no-properties 1))
-         (setf (adr-title record) (match-string-no-properties 2)))
-       (when (re-search-forward "^Date: \\(.+\\)$")
-         (setf (adr-date record) (match-string-no-properties 1))
-         )
-       (when (re-search-forward "^## Status$")
-         (when (re-search-forward "\\([^ #\n]+\\)")
-           (setf (adr-status record) (match-string-no-properties 1))
-           ))
+  (condition-case nil
+      (let ((record (make-adr :filename filename)))
+        (with-current-buffer (find-file-noselect filename)
+          (save-excursion
+            (goto-char 0)
+            (when (re-search-forward "^# +\\([0-9]+\\)\.? +\\(.+\\)$")
+              (setf (adr-number record) (match-string-no-properties 1))
+              (setf (adr-title record) (match-string-no-properties 2)))
+            (when (re-search-forward "^Date: \\(.+\\)$")
+              (setf (adr-date record) (match-string-no-properties 1))
+              )
+            (when (re-search-forward "^## Status$")
+              (when (re-search-forward "\\([^ #\n]+\\)")
+                (setf (adr-status record) (match-string-no-properties 1))
+                ))
 
-       record
-       ))))
+            record
+            )))
+    ((debug error)
+     (message (format "Cannot parse %s" filename))
+     nil)))
 
 ;; https://stackoverflow.com/questions/11272632/how-to-create-a-column-view-in-emacs-lisp/11529749
 
