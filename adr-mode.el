@@ -99,10 +99,8 @@ Return a lisp adr record representing the useful content of filename."
     (interactive "sNew ADR title: ")
     (let* ((adr-count (length (adr-list-files nil)))
            (new-adr-id (number-to-string (1+ adr-count)))
-           (filename (adr-create-filename new-adr-id title))
-           ;; TODO get path
-           )
-      (message filename)))
+           (filename (adr-create-filename new-adr-id title)))
+      filename))
 
 (defun adr-create-filename
     (id title)
