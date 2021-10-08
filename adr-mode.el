@@ -55,10 +55,10 @@
 
 (defun adr-get-records-dir
     ()
-  (if-let ((adr-config-dir (locate-dominating-file "." ".adr-dir"))
+  (if-let ((adr-config-dir (locate-dominating-file default-directory ".adr-dir"))
            (adr-file (concat adr-config-dir "/.adr-dir"))
            (adr-dir (adr-read-records-dir adr-file)))
-      adr-dir))
+      (concat adr-config-dir adr-dir)))
 
 (defun adr-list-files
     (full)
@@ -98,14 +98,15 @@ Return a lisp adr record representing the useful content of filename."
     ""
     (interactive "sNew ADR title: ")
     (let* ((adr-count (length (adr-list-files nil)))
-           (new-adr-id (number-to-string (+1 adr-count)))
+           (new-adr-id (number-to-string (1+ adr-count)))
            (filename (adr-create-filename new-adr-id title))
            ;; TODO get path
            )
-      (message title)))
+      (message filename)))
 
 (defun adr-create-filename
     (id title)
   (let* ((title (downcase title))
-         (title (s-replace " " "-" title)))
-    (concat (s-pad-left 4 "0" id) "-" title ".md")))
+         (title (s-replace " " "-" title))
+         (records-dir (adr-get-records-dir)))
+    (concat records-dir "/" (s-pad-left 4 "0" id) "-" title ".md")))
