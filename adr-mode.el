@@ -10,7 +10,9 @@
                                ("Title" 0 t)])
   (setq tabulated-list-padding 4)
   (setq tabulated-list-sort-key '("Status" . nil))
-  (tabulated-list-init-header))
+  (tabulated-list-init-header)
+  (define-key adr-list-mode-map "n" 'adr-new-record)
+  )
 
 (cl-defstruct adr
   "Record saving the main information of an adr file."
@@ -76,5 +78,13 @@ Return a lisp adr record representing the useful content of filename."
      (message (format "Cannot parse %s. Reason: %s" filename (prin1-to-string err)))
      nil)))
 
-;; https://stackoverflow.com/questions/11272632/how-to-create-a-column-view-in-emacs-lisp/11529749
+(defun adr-new-record (title)
+    ""
+  (interactive "sNew ADR title: ")
+  (message title))
 
+(defun adr-create-filename
+    (id title)
+  (let* ((title (downcase title))
+         (title (s-replace " " "-" title)))
+    (concat (s-pad-left 4 "0" id) "-" title ".md")))
