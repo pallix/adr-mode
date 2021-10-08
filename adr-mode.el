@@ -48,9 +48,25 @@
          (filename (car (directory-files "adr" t (concat "^" padded-number "-.*\.md$")))))
     filename))
 
+(defun adr-read-records-dir (adr-config-file)
+  (with-temp-buffer
+    (insert-file-contents adr-config-file)
+    (s-trim (buffer-string))))
+
+(defun adr-get-records-dir
+    ()
+  (if-let ((adr-config-dir (locate-dominating-file "." ".adr-dir"))
+           (adr-file (concat adr-config-dir "/.adr-dir"))
+           (adr-dir (adr-read-records-dir adr-file)))
+      adr-dir))
+
 (defun adr-list-files
     (full)
-  (directory-files "adr" full "\.md$"))
+  (if-let ((adr-dir (adr-get-records-dir)))
+      (directory-files adr-dir full "\.md$")
+    (progn
+      (message "Cannot find .adr-dir file ")
+      nil)))
 
 (defun adr-parse-file (filename)
   "Parse an adr file.
@@ -80,8 +96,13 @@ Return a lisp adr record representing the useful content of filename."
 
 (defun adr-new-record (title)
     ""
-  (interactive "sNew ADR title: ")
-  (message title))
+    (interactive "sNew ADR title: ")
+    (let* ((adr-count (length (adr-list-files nil)))
+           (new-adr-id (number-to-string (+1 adr-count)))
+           (filename (adr-create-filename new-adr-id title))
+           ;; TODO get path
+           )
+      (message title)))
 
 (defun adr-create-filename
     (id title)
